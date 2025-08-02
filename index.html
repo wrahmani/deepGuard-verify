@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepGuard Verify - मुफ्त डीपफेक जांच</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 DeepGuard Verify</h1>
+            <p>फ़ोटो/वीडियो अपलोड करें → 10 सेकंड में पता करें असली है या नकली!</p>
+        </header>
+        
+        <div class="upload-box">
+            <input type="file" id="mediaInput" accept="image/*,video/*">
+            <button id="detectBtn">जाँच शुरू करें</button>
+        </div>
+        
+        <div class="result-box">
+            <h2>परिणाम:</h2>
+            <div id="resultText">कृपया फाइल चुनें...</div>
+            <div class="confidence-meter">
+                <div id="confidenceBar"></div>
+            </div>
+            <div id="confidenceValue">विश्वास: 0%</div>
+        </div>
+        
+        <footer>
+            <p>⚠️ सावधानी: यह बेसिक संस्करण है (30 सेकंड तक वीडियो)</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.15.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.0/dist/ffmpeg.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

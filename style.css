@@ -1,0 +1,117 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+body {
+    background: #f0f5ff;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 800px;
+    margin: 20px auto;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    padding: 30px;
+    text-align: center;
+}
+
+header {
+    margin-bottom: 25px;
+}
+
+h1 {
+    color: #1a73e8;
+    margin-bottom: 10px;
+    font-size: 2.2rem;
+}
+
+.upload-box {
+    border: 2px dashed #1a73e8;
+    border-radius: 10px;
+    padding: 25px;
+    margin: 25px 0;
+    background: #f8fbff;
+}
+
+input[type="file"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: white;
+}
+
+button {
+    background: #1a73e8;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    font-size: 1.1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background: #0d62cb;
+}
+
+.result-box {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 20px;
+    min-height: 150px;
+}
+
+#resultText {
+    font-size: 1.2rem;
+    margin: 15px 0;
+    min-height: 40px;
+    font-weight: 500;
+}
+
+.confidence-meter {
+    background: #e0e0e0;
+    height: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+    overflow: hidden;
+}
+
+#confidenceBar {
+    height: 100%;
+    width: 0%;
+    background: #1a73e8;
+    transition: width 0.8s;
+}
+
+#confidenceValue {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+footer {
+    margin-top: 30px;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 15px;
+    }
+    .upload-box {
+        padding: 15px;
+    }
+    h1 {
+        font-size: 1.8rem;
+    }
+}
