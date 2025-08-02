@@ -1,115 +1,69 @@
-const { createFFmpeg, fetchFile } = FFmpeg;
-let ffmpeg;
+// ===== LANGUAGE TOGGLE FUNCTIONALITY ===== //
+const translations = {
+    en: {
+        subtitle: "Upload photo/video → Detect if it's real or fake in 10 seconds!",
+        detectBtn: "Start Detection",
+        resultHeader: "Result:",
+        resultDefault: "Please select a file...",
+        checking: "Checking in progress... Please wait",
+        confidenceValue: "Confidence: 0%",
+        footerText: "⚠️ Note: This is a basic version (30s max video length)",
+        authentic: "✅ Authentic media (confidence: ",
+        fake: "⚠️ Warning: Likely fake (confidence: ",
+        error: "Error: Detection failed"
+    },
+    hi: {
+        subtitle: "फ़ोटो/वीडियो अपलोड करें → 10 सेकंड में पता करें असली है या नकली!",
+        detectBtn: "जाँच शुरू करें",
+        resultHeader: "परिणाम:",
+        resultDefault: "कृपया फाइल चुनें...",
+        checking: "जाँच चल रही है... कृपया प्रतीक्षा करें",
+        confidenceValue: "विश्वास: 0%",
+        footerText: "⚠️ सावधानी: यह बेसिक संस्करण है (30 सेकंड तक वीडियो)",
+        authentic: "✅ असली मीडिया (विश्वास: ",
+        fake: "⚠️ चेतावनी: संभावित नकली (विश्वास: ",
+        error: "त्रुटि: जाँच असफल रही"
+    }
+};
 
-async function initFFmpeg() {
-    ffmpeg = createFFmpeg({ log: true });
-    await ffmpeg.load();
-    console.log("FFmpeg loaded!");
+let currentLang = 'hi';
+
+function setLanguage(lang) {
+    currentLang = lang;
+    document.getElementById('subtitle').textContent = translations[lang].subtitle;
+    document.getElementById('detectBtnText').textContent = translations[lang].detectBtn;
+    document.getElementById('resultHeader').textContent = translations[lang].resultHeader;
+    document.getElementById('confidenceValue').textContent = translations[lang].confidenceValue;
+    document.getElementById('footerText').textContent = translations[lang].footerText;
+    document.getElementById('loadingText').textContent = translations[lang].checking;
+    
+    // Update buttons
+    document.getElementById('hindiBtn').classList.toggle('active', lang === 'hi');
+    document.getElementById('englishBtn').classList.toggle('active', lang === 'en');
+    
+    // Reset result text
+    document.getElementById('resultText').textContent = translations[lang].resultDefault;
 }
 
-let model;
-async function loadModel() {
-    model = await tf.loadGraphModel(
-        "https://storage.googleapis.com/deepguard-basic/model.json"
-    );
-    console.log("AI Model loaded!");
-}
+// Setup language buttons
+document.getElementById('hindiBtn').addEventListener('click', () => setLanguage('hi'));
+document.getElementById('englishBtn').addEventListener('click', () => setLanguage('en'));
 
-async function processImage(file) {
-    return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => {
-            const tensor = tf.browser
-                .fromPixels(img)
-                .resizeNearestNeighbor([256, 256])
-                .toFloat()
-                .div(255.0)
-                .expandDims();
-            resolve(tensor);
-        };
-        img.src = URL.createObjectURL(file);
-    });
-}
+// Initialize with Hindi
+setLanguage('hi');
 
-async function extractFrames(videoFile, frameCount = 5) {
-    const frames = [];
-    ffmpeg.FS("writeFile", "input.mp4", await fetchFile(videoFile));
-    await ffmpeg.run("-i", "input.mp4", "-vf", "fps=1", "frame-%d.png");
-    
-    for(let i = 1; i <= frameCount; i++) {
-        try {
-            const frameName = `frame-${i}.png`;
-            if(ffmpeg.FS("readdir", "/").includes(frameName)) {
-                const data = ffmpeg.FS("readFile", frameName);
-                frames.push(new Blob([data.buffer], { type: "image/png" }));
-            }
-        } catch(e) {
-            console.log(`Stopped at frame ${i}`);
-            break;
-        }
-    }
-    return frames;
-}
+// ===== ADD THIS INSIDE YOUR detectDeepfake FUNCTION ===== //
+// Replace your result display code with this:
 
-async function detectDeepfake(file) {
-    const fileType = file.type.split("/")[0];
-    let predictions = [];
-    
-    if (fileType === "image") {
-        const tensor = await processImage(file);
-        const pred = model.predict(tensor);
-        predictions = [pred.dataSync()[0]];
-    } 
-    else if (fileType === "video") {
-        const frames = await extractFrames(file, 5);
-        for(const frame of frames) {
-            const tensor = await processImage(frame);
-            const pred = model.predict(tensor);
-            predictions.push(pred.dataSync()[0]);
-        }
-    }
-    
-    const avgConfidence = predictions.reduce((a, b) => a + b, 0) / predictions.length;
-    return avgConfidence;
-}
+// Inside your detectDeepfake function after getting confidence score:
+const isFake = confidence > 0.7;
+const resultText = isFake ? 
+    translations[currentLang].fake + Math.round(confidence*100) + '%)' : 
+    translations[currentLang].authentic + Math.round((1-confidence)*100) + '%)';
 
-document.getElementById("detectBtn").addEventListener("click", async () => {
-    const fileInput = document.getElementById("mediaInput");
-    const file = fileInput.files[0];
-    
-    if (!file) {
-        alert("कृपया कोई फोटो या वीडियो चुनें");
-        return;
-    }
-    
-    document.getElementById("resultText").textContent = "जाँच चल रही है... ⏳";
-    document.getElementById("confidenceBar").style.width = "0%";
-    document.getElementById("confidenceValue").textContent = "विश्वास: 0%";
-    
-    try {
-        const confidence = await detectDeepfake(file);
-        const isFake = confidence > 0.7;
-        const resultText = isFake ? 
-            `⚠️ चेतावनी: ${Math.round(confidence*100)}% संभावना से नकली` : 
-            `✅ असली मीडिया (${Math.round((1-confidence)*100)}% विश्वास)`;
-        
-        document.getElementById("resultText").textContent = resultText;
-        document.getElementById("confidenceBar").style.width = `${confidence*100}%`;
-        document.getElementById("confidenceValue").textContent = 
-            `विश्वास: ${Math.round(confidence*100)}%`;
-        
-    } catch (error) {
-        document.getElementById("resultText").textContent = "त्रुटि: जाँच असफल रही";
-    }
-});
+document.getElementById('resultText').textContent = resultText;
 
-window.addEventListener("load", async () => {
-    try {
-        document.getElementById("resultText").textContent = "तैयार हो रहा है...";
-        await initFFmpeg();
-        await loadModel();
-        document.getElementById("resultText").textContent = "तैयार! फाइल अपलोड करें";
-    } catch (e) {
-        document.getElementById("resultText").textContent = "त्रुटि: AI लोड नहीं हुआ";
-    }
-});
+// ===== UPDATE YOUR LOADING MESSAGES ===== //
+// Replace all hardcoded Hindi text with translations[currentLang].*
+// Example:
+document.getElementById('resultText').textContent = translations[currentLang].checking;
